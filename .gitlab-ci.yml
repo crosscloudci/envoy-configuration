@@ -25,6 +25,7 @@ compile:
   image: crosscloudci/debian-docker
   stage: build
   script:
+    - sleep 100000
     - IMAGE_NAME=envoyproxy/envoy-build-ubuntu ./ci/run_envoy_docker.sh './ci/do_ci.sh bazel.release'
     
   artifacts:
