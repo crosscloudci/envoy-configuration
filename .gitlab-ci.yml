@@ -29,6 +29,7 @@ baseimage:
     LINUX_DISTRO: ubuntu
   script:
     - cd ./ci/build_container/
+    - sed -i "1s|.*|FROM crosscloudci/ubuntu-xenial|" ./Dockerfile-ubuntu
     - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO" ./docker_build.sh
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
     - docker push "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG"
@@ -40,7 +41,6 @@ compile:
   variables:
     LINUX_DISTRO: ubuntu
   script:
-    - sleep 100000
     - IMAGE_NAME=envoyproxy/envoy-build-ubuntu ./ci/run_envoy_docker.sh './ci/do_ci.sh bazel.release'
     
   artifacts:
