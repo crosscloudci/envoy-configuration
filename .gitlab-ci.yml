@@ -46,9 +46,8 @@ compile:
   variables:
     LINUX_DISTRO: ubuntu
   script:
-    - sleep 10000000
     - mkdir /build
-    - ln -s /builds /source
+    - ln -s /builds/envoy/envoy/ /source
     - ./ci/do_ci.sh bazel.release
     
   artifacts:
