@@ -35,6 +35,12 @@ baseimage:
   script:
     - cd ./ci/build_container/
     - sed -i "1s|.*|FROM crosscloudci/ubuntu-xenial|" ./Dockerfile-ubuntu
+    - >
+      if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
+        echo "Skip g++ update"
+      else
+        sed -i 's/16.04.9/16.04.10/g' ./build_container_ubuntu.sh
+      fi
     - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO" ./docker_build.sh
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
     - docker push "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG"
