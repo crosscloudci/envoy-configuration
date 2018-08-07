@@ -45,6 +45,7 @@ compile:
   stage: build
   variables:
     LINUX_DISTRO: ubuntu
+    ENVOY_IP_TEST_VERSIONS: ipv4
   script:
     - mkdir /build
     - ln -s /builds/envoy/envoy/ /source
