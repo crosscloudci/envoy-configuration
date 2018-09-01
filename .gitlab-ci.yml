@@ -51,10 +51,11 @@ compile:
   stage: build
   variables:
    LINUX_DISTRO: ubuntu
+   BAZEL_EXTRA_TEST_OPTIONS: --test_env=ENVOY_IP_TEST_VERSIONS=v4only
   script:
     - mkdir /build
     - ln -s /builds/envoy/envoy/ /source
-    - sed -i 's|bazel --batch test ${BAZEL_TEST_OPTIONS} -c opt //test/...|bazel --batch test ${BAZEL_TEST_OPTIONS} --test_env=ENVOY_IP_TEST_VERSIONS=v4only -c opt //test/...|g' ./ci/do_ci.sh
+    # - sed -i 's|bazel --batch test ${BAZEL_TEST_OPTIONS} -c opt //test/...|bazel --batch test ${BAZEL_TEST_OPTIONS} --test_env=ENVOY_IP_TEST_VERSIONS=v4only -c opt //test/...|g' ./ci/do_ci.sh
     - ./ci/do_ci.sh  bazel.release
     
   artifacts:
