@@ -27,7 +27,8 @@ before_script:
       source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
     fi
 
-baseimage:
+baseimage-aufs:
+  tags: aufs
   image: crosscloudci/debian-docker
   stage: dependencies
   variables:
@@ -37,14 +38,33 @@ baseimage:
     - sed -i "1s|.*|FROM crosscloudci/ubuntu-xenial|" ./Dockerfile-ubuntu
     - >
       if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
-        echo "Skip g++ update"
+        CIRCLE_SHA1="$CI_COMMIT_REF_SLUG" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO" ./docker_build.sh
+        docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
+        docker push "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG"
+      else
+        echo "This is stable, skip aufs build"
+        exit 1
+      fi
+
+baseimage-overlayfs:
+  image: crosscloudci/debian-docker
+  stage: dependencies
+  tags: overlayfs
+  variables:
+    LINUX_DISTRO: ubuntu
+  script:
+    - cd ./ci/build_container/
+    - sed -i "1s|.*|FROM crosscloudci/ubuntu-xenial|" ./Dockerfile-ubuntu
+    - >
+      if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
+        echo "This is master, skip overlayfs build"
+        exit 1
       else
         sed -i 's/16.04.10/16.04.11/g' ./build_container_ubuntu.sh
+        CIRCLE_SHA1="$CI_COMMIT_REF_SLUG" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO" ./docker_build.sh
+        docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
+        docker push "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG"
       fi
-    - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO" ./docker_build.sh
-    - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
-    - docker push "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG"
-
 
 compile:
   image: "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG"
