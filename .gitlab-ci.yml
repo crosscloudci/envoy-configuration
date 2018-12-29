@@ -28,7 +28,8 @@ before_script:
     fi
 
 baseimage-aufs:
-  tags: aufs
+  tags:
+    - aufs
   image: crosscloudci/debian-docker
   stage: dependencies
   variables:
@@ -49,7 +50,8 @@ baseimage-aufs:
 baseimage-overlayfs:
   image: crosscloudci/debian-docker
   stage: dependencies
-  tags: overlayfs
+  tags:
+    - overlayfs
   variables:
     LINUX_DISTRO: ubuntu
   script:
