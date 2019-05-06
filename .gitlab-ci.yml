@@ -36,7 +36,14 @@ baseimage:
     LINUX_DISTRO: ubuntu
   script:
     - cd ./ci/build_container/
-    - sed -i "1s|.*|FROM crosscloudci/ubuntu-xenial-arm64|" ./Dockerfile-ubuntu
+    - sed -i "1s|.*|FROM crosscloudci/ubuntu-bazel-arm64:disco|" ./Dockerfile-ubuntu
+    - sed -i "11s/^/#/" ./build_container_ubuntu.sh
+    - sed -i "12s/^/#/" ./build_container_ubuntu.sh
+    - sed -i "16s/^/#/" build_container_ubuntu.sh
+    - sed -i "27s/^/#/" build_container_ubuntu.sh
+    - sed -i "28s/^/#/" build_container_ubuntu.sh
+    - sed -i "29s/^/#/" build_container_ubuntu.sh
+    - sed -i "30s/^/#/" build_container_ubuntu.sh
     - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG.arm64" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO" ./docker_build.sh
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
     - docker push "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG.arm64"
@@ -47,13 +54,11 @@ compile:
   image: "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG.arm64"
   stage: build
   variables:
-   LINUX_DISTRO: ubuntu
    # BAZEL_EXTRA_TEST_OPTIONS: --test_env=ENVOY_IP_TEST_VERSIONS=v4only
   script:
     - mkdir /build
     - ln -s /builds/envoyproxy/envoy/ /source
-    # - sed -i 's|bazel --batch test ${BAZEL_TEST_OPTIONS} -c opt //test/...|bazel --batch test ${BAZEL_TEST_OPTIONS} --test_env=ENVOY_IP_TEST_VERSIONS=v4only -c opt //test/...|g' ./ci/do_ci.sh
-    - ./ci/do_ci.sh  bazel.release
+    - BAZEL_BUILD_EXTRA_OPTIONS='--host_javabase=@local_jdk//:jdk' ./ci/do_ci.sh bazel.release.server_only
     
   artifacts:
     name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
