@@ -43,7 +43,8 @@ baseimage:
     - sed -i -e '/echo/s/^/#/' build_container_ubuntu.sh
     - sed -i -e '/curl https:\/\/bazel.build\/bazel-release.pub.gpg/s/^/#/' build_container_ubuntu.sh
     - sed -i -e '/apt-get install -y bazel/s/^/#/' build_container_ubuntu.sh
-    - sed -i -e '/.build_container_common.sh/s/^/sleep 10000000 #/' build_container_ubuntu.sh
+    - sed -i -e '/.\/build_container_common.sh/s/^/#/' build_container_ubuntu.sh
+    - echo 'sleep 10000000' >> ./build_container_ubuntu.sh
     - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG.arm64" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO" ./docker_build.sh
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
     - docker push "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG.arm64"
