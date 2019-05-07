@@ -35,7 +35,7 @@ bazel:
   script:
     - apt update && apt -y install qemu-user qemu-user-static
     - git clone https://github.com/crosscloudci/gitlab-dashboard-updater.git
-    - cd ubuntu-bazel-arm64
+    - cd gitlab-dashboard-updater/ubuntu-bazel-arm64
     - docker build -t crosscloudci/ubuntu-bazel-arm64:disc .
 
 baseimage:
