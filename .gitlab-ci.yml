@@ -27,6 +27,17 @@ before_script:
       source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
     fi
 
+bazel:
+  tags:
+    - aufs
+  image: crosscloudci/debian-docker
+  stage: dependencies
+  script:
+    - apt update && apt -y install qemu-user qemu-user-static
+    - git clone https://github.com/crosscloudci/gitlab-dashboard-updater.git
+    - cd ubuntu-bazel-arm64
+    - docker build -t crosscloudci/ubuntu-bazel-arm64:disc .
+
 baseimage:
   tags:
     - aufs
