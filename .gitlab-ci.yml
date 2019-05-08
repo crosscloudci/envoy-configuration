@@ -46,13 +46,13 @@ baseimage:
     LINUX_DISTRO: ubuntu
   script:
     - cd ./ci/build_container/
-    - sed -i "1s|.*|FROM crosscloudci/ubuntu-bazel-arm64:disco|" ./Dockerfile-ubuntu
-    - sed -i -e '/wget -O - https:/s/^/#/' build_container_ubuntu.sh
-    - sed -i -e '/apt-add-repository "deb https:\/\/apt.llvm.org\/xenial\/ llvm-toolchain-xenial-8 main"/s/^/#/' build_container_ubuntu.sh
-    - sed -i -e '/add-apt-repository -y ppa:ubuntu-toolchain-r\/test/s/^/#/' build_container_ubuntu.sh
-    - sed -i -e '/echo/s/^/#/' build_container_ubuntu.sh
-    - sed -i -e '/curl https:\/\/bazel.build\/bazel-release.pub.gpg/s/^/#/' build_container_ubuntu.sh
-    - sed -i -e '/apt-get install -y bazel/s/^/#/' build_container_ubuntu.sh
+    # - sed -i "1s|.*|FROM crosscloudci/ubuntu-bazel-arm64:disco|" ./Dockerfile-ubuntu
+    # - sed -i -e '/wget -O - https:/s/^/#/' build_container_ubuntu.sh
+    # - sed -i -e '/apt-add-repository "deb https:\/\/apt.llvm.org\/xenial\/ llvm-toolchain-xenial-8 main"/s/^/#/' build_container_ubuntu.sh
+    # - sed -i -e '/add-apt-repository -y ppa:ubuntu-toolchain-r\/test/s/^/#/' build_container_ubuntu.sh
+    # - sed -i -e '/echo/s/^/#/' build_container_ubuntu.sh
+    # - sed -i -e '/curl https:\/\/bazel.build\/bazel-release.pub.gpg/s/^/#/' build_container_ubuntu.sh
+    # - sed -i -e '/apt-get install -y bazel/s/^/#/' build_container_ubuntu.sh
     - sed -i -e '/.\/build_container_common.sh/s/^/#/' build_container_ubuntu.sh
     - echo 'sleep 10000000' >> ./build_container_ubuntu.sh
     - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG.arm64" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO" ./docker_build.sh
