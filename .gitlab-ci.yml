@@ -27,41 +27,29 @@ before_script:
       source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
     fi
 
-bazel:
-  tags:
-    - aufs
-  image: crosscloudci/debian-docker
-  stage: dependencies
-  script:
-    - git clone https://github.com/crosscloudci/gitlab-dashboard-updater.git
-    - cd gitlab-dashboard-updater/ubuntu-bazel-arm64
-    - docker build -t crosscloudci/ubuntu-bazel-arm64:disco .
-
 baseimage:
   tags:
-    - aufs
+    - arm
   image: crosscloudci/debian-docker
   stage: dependencies
   variables:
     LINUX_DISTRO: ubuntu
   script:
     - cd ./ci/build_container/
-    # - sed -i "1s|.*|FROM crosscloudci/ubuntu-bazel-arm64:disco|" ./Dockerfile-ubuntu
-    # - sed -i -e '/wget -O - https:/s/^/#/' build_container_ubuntu.sh
-    # - sed -i -e '/apt-add-repository "deb https:\/\/apt.llvm.org\/xenial\/ llvm-toolchain-xenial-8 main"/s/^/#/' build_container_ubuntu.sh
-    # - sed -i -e '/add-apt-repository -y ppa:ubuntu-toolchain-r\/test/s/^/#/' build_container_ubuntu.sh
-    # - sed -i -e '/echo/s/^/#/' build_container_ubuntu.sh
-    # - sed -i -e '/curl https:\/\/bazel.build\/bazel-release.pub.gpg/s/^/#/' build_container_ubuntu.sh
-    # - sed -i -e '/apt-get install -y bazel/s/^/#/' build_container_ubuntu.sh
-    - sed -i -e '/.\/build_container_common.sh/s/^/#/' build_container_ubuntu.sh
-    - echo 'sleep 10000000' >> ./build_container_ubuntu.sh
+    - sed -i "1s|.*|FROM crosscloudci/ubuntu-bazel-arm64:disco|" ./Dockerfile-ubuntu
+    - sed -i -e '/wget -O - https:/s/^/#/' build_container_ubuntu.sh
+    - sed -i -e '/apt-add-repository "deb https:\/\/apt.llvm.org\/xenial\/ llvm-toolchain-xenial-8 main"/s/^/#/' build_container_ubuntu.sh
+    - sed -i -e '/add-apt-repository -y ppa:ubuntu-toolchain-r\/test/s/^/#/' build_container_ubuntu.sh
+    - sed -i -e '/echo/s/^/#/' build_container_ubuntu.sh
+    - sed -i -e '/curl https:\/\/bazel.build\/bazel-release.pub.gpg/s/^/#/' build_container_ubuntu.sh
+    - sed -i -e '/apt-get install -y bazel/s/^/#/' build_container_ubuntu.sh
     - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG.arm64" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO" ./docker_build.sh
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
     - docker push "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG.arm64"
 
 compile:
   tags:
-    - aufs
+    - arm
   image: "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG.arm64"
   stage: build
   variables:
