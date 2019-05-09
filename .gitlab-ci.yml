@@ -81,7 +81,6 @@ compile:
   variables:
    # BAZEL_EXTRA_TEST_OPTIONS: --test_env=ENVOY_IP_TEST_VERSIONS=v4only
   script:
-    - mkdir /build
     - ln -s /builds/envoyproxy/envoy/ /source
     - BAZEL_BUILD_EXTRA_OPTIONS='--host_javabase=@local_jdk//:jdk' ./ci/do_ci.sh bazel.release.server_only
     
