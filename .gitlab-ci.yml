@@ -4,30 +4,32 @@ stages:
   - package
 
 before_script:
-  # - export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
-  # - export CI_COMMIT_SHA_SHORT=$(echo ${CI_COMMIT_SHA} | cut -c -8)
-  # - >
-  #   if [ -z "$CROSS_CLOUD_YML" ]; then
-  #      if [ "$BASE_URL" == "https://gitlab.cncf.ci" ]; then
-  #         export CROSS_CLOUD_YML="https://raw.githubusercontent.com/CrossCloudCI/cncf-configuration/production/cross-cloud.yml"
-  #      elif [ "$BASE_URL" == "https://gitlab.staging.cncf.ci" ]; then
-  #         export CROSS_CLOUD_YML="https://raw.githubusercontent.com/CrossCloudCI/cncf-configuration/staging/cross-cloud.yml"
-  #      elif [ "$BASE_URL" == "https://gitlab.cidev.cncf.ci" ]; then
-  #         export CROSS_CLOUD_YML="https://raw.githubusercontent.com/CrossCloudCI/cncf-configuration/integration/cross-cloud.yml"
-  #      else
-  #         export CROSS_CLOUD_YML="https://raw.githubusercontent.com/CrossCloudCI/cncf-configuration/master/cross-cloud.yml"
-  #      fi
-  #   else
-  #     export CROSS_CLOUD_YML="$CROSS_CLOUD_YML"
-  #   fi
-  # - >
-  #   if [ "$CI_JOB_NAME" == "compile" ]; then
-  #     source /opt/local/ubuntu/etc/rvmrc ; source /opt/local/ubuntu/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
-  #   else
-  #     source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
-  #   fi
+  - export BASE_URL=${BASE_URL:-$(echo $CI_PROJECT_URL |  cut -d'/' -f1-3)}
+  - export CI_COMMIT_SHA_SHORT=$(echo ${CI_COMMIT_SHA} | cut -c -8)
+  - >
+    if [ -z "$CROSS_CLOUD_YML" ]; then
+       if [ "$BASE_URL" == "https://gitlab.cncf.ci" ]; then
+          export CROSS_CLOUD_YML="https://raw.githubusercontent.com/CrossCloudCI/cncf-configuration/production/cross-cloud.yml"
+       elif [ "$BASE_URL" == "https://gitlab.staging.cncf.ci" ]; then
+          export CROSS_CLOUD_YML="https://raw.githubusercontent.com/CrossCloudCI/cncf-configuration/staging/cross-cloud.yml"
+       elif [ "$BASE_URL" == "https://gitlab.cidev.cncf.ci" ]; then
+          export CROSS_CLOUD_YML="https://raw.githubusercontent.com/CrossCloudCI/cncf-configuration/integration/cross-cloud.yml"
+       else
+          export CROSS_CLOUD_YML="https://raw.githubusercontent.com/CrossCloudCI/cncf-configuration/master/cross-cloud.yml"
+       fi
+    else
+      export CROSS_CLOUD_YML="$CROSS_CLOUD_YML"
+    fi
+  - >
+    if [ "$CI_JOB_NAME" == "compile-arm64" ]; then
+      source /opt/local/ubuntu/etc/rvmrc ; source /opt/local/ubuntu/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
+    elif [ "$CI_JOB_NAME" == "compile-amd64" ]; then
+      source /opt/local/ubuntu/etc/rvmrc ; source /opt/local/ubuntu/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
+    else
+      source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
+    fi
 
-baseimage:
+baseimage-arm64:
   tags:
     - arm
   image: crosscloudci/debian-docker:arm64
@@ -58,6 +60,8 @@ compile-arm64:
   only:
     variables:
       - $ARCH == "arm64"
+  variables:
+    LINUX_DISTRO: ubuntu
   variables:
    # BAZEL_EXTRA_TEST_OPTIONS: --test_env=ENVOY_IP_TEST_VERSIONS=v4only
   script:
