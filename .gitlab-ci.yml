@@ -30,8 +30,11 @@ before_script:
 baseimage:
   tags:
     - arm
-  image: crosscloudci/debian-docker
+  image: crosscloudci/debian-docker:arm64
   stage: dependencies
+  only:
+    variables:
+      - $ARCH == "arm64"
   variables:
     LINUX_DISTRO: ubuntu
   script:
@@ -52,11 +55,11 @@ compile-arm64:
     - arm
   image: "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG.arm64"
   stage: build
-  variables:
-   # BAZEL_EXTRA_TEST_OPTIONS: --test_env=ENVOY_IP_TEST_VERSIONS=v4only
   only:
     variables:
       - $ARCH == "arm64"
+  variables:
+   # BAZEL_EXTRA_TEST_OPTIONS: --test_env=ENVOY_IP_TEST_VERSIONS=v4only
   script:
     - mkdir /build
     - ln -s /builds/envoyproxy/envoy/ /source
@@ -72,7 +75,7 @@ compile-arm64:
 container-arm64:
   tags:
     - arm
-  image: crosscloudci/debian-docker
+  image: crosscloudci/debian-docker:arm64
   stage: package
   only:
     variables:
