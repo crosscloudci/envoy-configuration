@@ -83,6 +83,7 @@ compile:
   script:
     - mkdir /build #Create build mount
     - ln -s /builds/envoyproxy/envoy/ /source
+    - sleep 10000000
     - BAZEL_BUILD_EXTRA_OPTIONS='--host_javabase=@local_jdk//:jdk' ./ci/do_ci.sh bazel.release.server_only
     
   artifacts:
