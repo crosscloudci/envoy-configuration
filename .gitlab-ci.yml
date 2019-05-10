@@ -58,7 +58,7 @@ baseimage:
   stage: dependencies
   only:
     variables:
-      - $ARCH == null
+      - $ARCH == "amd64"
   script:
     - cd ./ci/build_container/
     - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG.amd64" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-ubuntu" ./docker_build.sh
@@ -91,7 +91,7 @@ compile:
   stage: build
   only:
     variables:
-      - $ARCH !== "arm64"
+      - $ARCH == "amd64"
   script:
     - ln -s $(pwd) /source
     - ./ci/do_ci.sh bazel.release.server
@@ -138,7 +138,7 @@ container:
   stage: package
   only:
     variables:
-      - $ARCH !== "arm64"
+      - $ARCH == "amd64"
   script:
     - IMAGE_TAG=${CI_COMMIT_REF_NAME}.${CI_COMMIT_SHA_SHORT}.${CI_JOB_ID}.amd64
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
