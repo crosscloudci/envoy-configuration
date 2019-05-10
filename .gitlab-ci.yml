@@ -27,7 +27,7 @@ before_script:
       source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
     fi
 
-baseimage:
+baseimage-amd:
   tags:
     - aufs
   image: crosscloudci/debian-docker:latest
