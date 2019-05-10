@@ -46,7 +46,7 @@ baseimage:
     - sed -i -e '/apt-get install -y bazel/s/^/#/' build_container_ubuntu.sh
     - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG.arm64" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-ubuntu" ./docker_build.sh
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
-    - docker push "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG"
+    - docker push "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG.arm64"
 
     
 baseimage:
@@ -61,7 +61,7 @@ baseimage:
     - cd ./ci/build_container/
     - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG.amd64" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-ubuntu" ./docker_build.sh
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
-    - docker push "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG"
+    - docker push "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG.amd64"
 
 
 compile:
