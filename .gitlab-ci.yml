@@ -21,8 +21,10 @@ before_script:
       export CROSS_CLOUD_YML="$CROSS_CLOUD_YML"
     fi
   - >
-    if [ "$CI_JOB_NAME" == "compile" ]; then
+    if [ "$CI_JOB_NAME" == "compile" ] && [ "$ARCH" == "arm64" ]; then
       source /opt/local/ubuntu/etc/rvmrc ; source /opt/local/ubuntu/etc/profile.d/rvm.sh ; rvm use ruby-2.4.0 ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
+    elif [ "$CI_JOB_NAME" == "compile" ] && [ "$ARCH" !== "arm64" ]; then 
+      source /opt/local/ubuntu/etc/rvmrc ; source /opt/local/ubuntu/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
     else
       source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
     fi
