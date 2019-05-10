@@ -88,7 +88,7 @@ compile:
   stage: build
   only:
     variables:
-      - $ARCH !== "arm64"
+      - $ARCH == "amd64"
   script:
     - ln -s $(pwd) /source
     - ./ci/do_ci.sh bazel.release.server
@@ -135,7 +135,7 @@ container:
   stage: package
   only:
     variables:
-      - $ARCH !== "arm64"
+      - $ARCH == "amd64"
   script:
     - IMAGE_TAG=${CI_COMMIT_REF_NAME}.${CI_COMMIT_SHA_SHORT}.${CI_JOB_ID}.amd64
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
