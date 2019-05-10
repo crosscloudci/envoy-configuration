@@ -91,7 +91,7 @@ compile:
   stage: build
   only:
     variables:
-      - $ARCH !== "arm64"
+      - $ARCH == null
   script:
     - ln -s $(pwd) /source
     - ./ci/do_ci.sh bazel.release.server
