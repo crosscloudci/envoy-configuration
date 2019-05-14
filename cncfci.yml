@@ -3,5 +3,6 @@ project:
   display_name: Envoy
   sub_title: Service Mesh
   project_url: "https://github.com/envoyproxy/envoy"
+  arch:
     - "amd64"
     - "arm64"   
