@@ -1,5 +1,8 @@
 project:	
-  logo_url: "https://raw.githubusercontent.com/cncf/artwork/master/envoy/icon/color/envoy-icon-color.svg?sanitize=true"	
+  logo_url: "https://raw.githubusercontent.com/cncf/artwork/master/projects/envoy/icon/color/envoy-icon-color.svg?sanitize=true"	
   display_name: Envoy
   sub_title: Service Mesh
   project_url: "https://github.com/envoyproxy/envoy"
+  arch:
+    - "amd64"
+    - "arm64"   
