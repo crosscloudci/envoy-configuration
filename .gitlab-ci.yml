@@ -59,7 +59,6 @@ baseimage:
   only:
     variables:
       - $ARCH == null
-      # - $ARCH == "amd64" 
   script:
     - cd ./ci/build_container/
     - sed -i "1s|.*|FROM crosscloudci/ubuntu-xenial|" ./Dockerfile-ubuntu
@@ -94,7 +93,6 @@ compile:
   only:
     variables:
       - $ARCH == null
-      # - $ARCH == "amd64"
   script:
     - ln -s $(pwd) /source
     - ./ci/do_ci.sh bazel.release
@@ -142,7 +140,6 @@ container:
   only:
     variables:
       - $ARCH == null
-      # - $ARCH == "amd64"
   script:
     - IMAGE_TAG=${CI_COMMIT_REF_NAME}.${CI_COMMIT_SHA_SHORT}.${CI_JOB_ID}.amd64
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
