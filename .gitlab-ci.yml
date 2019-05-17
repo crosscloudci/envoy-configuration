@@ -29,7 +29,7 @@ before_script:
       source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
     fi
 
-baseimage:
+baseimage-arm:
   tags:
     - arm
   image: crosscloudci/debian-docker:arm64
@@ -58,7 +58,7 @@ baseimage:
   stage: dependencies
   only:
     variables:
-      - $ARCH == null
+      - $ARCH == "amd64"
   script:
     - cd ./ci/build_container/
     - sed -i "1s|.*|FROM crosscloudci/ubuntu-xenial|" ./Dockerfile-ubuntu
@@ -67,7 +67,7 @@ baseimage:
     - docker push "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG"
 
 
-compile:
+compile-arm:
   tags:
     - arm
   image: "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG.arm64"
@@ -92,7 +92,7 @@ compile:
   stage: build
   only:
     variables:
-      - $ARCH == null
+      - $ARCH == "amd64"
   script:
     - ln -s $(pwd) /source
     - ./ci/do_ci.sh bazel.release
@@ -103,7 +103,7 @@ compile:
     paths:
      - ./build_release_stripped/envoy
 
-container:
+container-arm:
   tags:
     - arm
   image: crosscloudci/debian-docker:arm64
@@ -139,7 +139,7 @@ container:
   stage: package
   only:
     variables:
-      - $ARCH == null
+      - $ARCH == "amd64"
   script:
     - IMAGE_TAG=${CI_COMMIT_REF_NAME}.${CI_COMMIT_SHA_SHORT}.${CI_JOB_ID}.amd64
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
