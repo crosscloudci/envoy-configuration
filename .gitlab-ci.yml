@@ -21,65 +21,63 @@ before_script:
       export CROSS_CLOUD_YML="$CROSS_CLOUD_YML"
     fi
   - >
-    if [ "$CI_JOB_NAME" == "compile" ]; then
+    if [ "$CI_JOB_NAME" == "compile" ] && [ "$ARCH" == "arm64" ]; then
+      source /opt/local/ubuntu/etc/rvmrc ; source /opt/local/ubuntu/etc/profile.d/rvm.sh ; rvm use ruby-2.4.0 ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
+    elif [ "$CI_JOB_NAME" == "compile" ] && [ "$ARCH" != "arm64" ]; then 
       source /opt/local/ubuntu/etc/rvmrc ; source /opt/local/ubuntu/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
     else
       source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
     fi
 
-baseimage-aufs:
+baseimage:
+  tags:
+    - arm
+  image: crosscloudci/debian-docker:arm64
+  stage: dependencies
+  only:
+    variables:
+      - $ARCH == "arm64"
+  script:
+    - cd ./ci/build_container/
+    - sed -i "1s|.*|FROM crosscloudci/ubuntu-bazel-arm64:disco|" ./Dockerfile-ubuntu
+    - sed -i -e '/wget -O - https:/s/^/#/' build_container_ubuntu.sh
+    - sed -i -e '/apt-add-repository "deb https:\/\/apt.llvm.org\/xenial\/ llvm-toolchain-xenial-8 main"/s/^/#/' build_container_ubuntu.sh
+    - sed -i -e '/add-apt-repository -y ppa:ubuntu-toolchain-r\/test/s/^/#/' build_container_ubuntu.sh
+    - sed -i -e '/echo/s/^/#/' build_container_ubuntu.sh
+    - sed -i -e '/curl https:\/\/bazel.build\/bazel-release.pub.gpg/s/^/#/' build_container_ubuntu.sh
+    - sed -i -e '/apt-get install -y bazel/s/^/#/' build_container_ubuntu.sh
+    - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG.arm64" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-ubuntu" ./docker_build.sh
+    - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
+    - docker push "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG.arm64"
+
+    
+baseimage:
   tags:
     - aufs
-  image: crosscloudci/debian-docker
+  image: crosscloudci/debian-docker:latest
   stage: dependencies
-  variables:
-    LINUX_DISTRO: ubuntu
+  only:
+    variables:
+      - $ARCH == null
   script:
     - cd ./ci/build_container/
     - sed -i "1s|.*|FROM crosscloudci/ubuntu-xenial|" ./Dockerfile-ubuntu
-    - >
-      if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
-        CIRCLE_SHA1="$CI_COMMIT_REF_SLUG" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO" ./docker_build.sh
-        docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
-        docker push "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG"
-      else
-        echo "This is stable, skip aufs build"
-        exit 0
-      fi
+    - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-ubuntu" ./docker_build.sh
+    - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
+    - docker push "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG"
 
-baseimage-overlayfs:
-  image: crosscloudci/debian-docker
-  stage: dependencies
-  tags:
-    - overlayfs
-  variables:
-    LINUX_DISTRO: ubuntu
-  script:
-    - cd ./ci/build_container/
-    - sed -i "1s|.*|FROM crosscloudci/ubuntu-xenial|" ./Dockerfile-ubuntu
-    - >
-      if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
-        echo "This is master, skip overlayfs build"
-        exit 0
-      else
-        sed -i 's/16.04.10/16.04.11/g' ./build_container_ubuntu.sh
-        CIRCLE_SHA1="$CI_COMMIT_REF_SLUG" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO" ./docker_build.sh
-        docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
-        docker push "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG"
-      fi
 
 compile:
-  image: "$CI_REGISTRY_IMAGE/envoy-build-$LINUX_DISTRO:$CI_COMMIT_REF_SLUG"
+  tags:
+    - arm
+  image: "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG.arm64"
   stage: build
-  variables:
-   LINUX_DISTRO: ubuntu
-   BAZEL_EXTRA_TEST_OPTIONS: --test_env=ENVOY_IP_TEST_VERSIONS=v4only
+  only:
+    variables:
+      - $ARCH == "arm64"
   script:
-    - mkdir /build
-    - ln -s /builds/envoyproxy/envoy/ /source
-    # - sed -i 's|bazel --batch test ${BAZEL_TEST_OPTIONS} -c opt //test/...|bazel --batch test ${BAZEL_TEST_OPTIONS} --test_env=ENVOY_IP_TEST_VERSIONS=v4only -c opt //test/...|g' ./ci/do_ci.sh
-    - ./ci/do_ci.sh  bazel.release
-    
+    - ln -s $(pwd) /source
+    - BAZEL_BUILD_EXTRA_OPTIONS='--host_javabase=@local_jdk//:jdk' ./ci/do_ci.sh bazel.release.server_only
   artifacts:
     name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
     untracked: true
@@ -87,11 +85,63 @@ compile:
     paths:
       - ./build_release_stripped/envoy
 
-container:
-  stage: package
-  image: crosscloudci/debian-docker 
+compile:
+  tags:
+    - aufs
+  image: "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG"
+  stage: build
+  only:
+    variables:
+      - $ARCH == null
   script:
-    - IMAGE_TAG=${CI_COMMIT_REF_NAME}.${CI_COMMIT_SHA_SHORT}.${CI_JOB_ID}
+    - ln -s $(pwd) /source
+    - ./ci/do_ci.sh bazel.release
+  artifacts:
+    name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
+    untracked: true
+    expire_in: 5 weeks
+    paths:
+     - ./build_release_stripped/envoy
+
+container:
+  tags:
+    - arm
+  image: crosscloudci/debian-docker:arm64
+  stage: package
+  only:
+    variables:
+      - $ARCH == "arm64"
+  script:
+    - IMAGE_TAG=${CI_COMMIT_REF_NAME}.${CI_COMMIT_SHA_SHORT}.${CI_JOB_ID}.arm64
+    - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
+    - sed -i "1s|.*|FROM crosscloudci/alpine-glibc:arm64|" ./ci/Dockerfile-envoy-alpine
+    - sed -i "1s|.*|FROM crosscloudci/alpine-glibc:arm64|" ./ci/Dockerfile-envoy-alpine-debug
+    - sed -i "1s|.*|FROM arm64v8/ubuntu:16.04|" ./ci/Dockerfile-envoy-image
+    - docker build --pull -f ci/Dockerfile-envoy-image -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
+    - docker build --pull -f ci/Dockerfile-envoy-alpine -t "$CI_REGISTRY_IMAGE/alpine:$IMAGE_TAG" .
+    - docker build --pull -f ci/Dockerfile-envoy-alpine-debug -t "$CI_REGISTRY_IMAGE/alpine-debug:$IMAGE_TAG" .
+    - docker push "$CI_REGISTRY_IMAGE:$IMAGE_TAG"
+    - echo export IMAGE_ARGS=\"--set image.repository=$CI_REGISTRY_IMAGE\" | tee release.env
+    - echo export TAG_ARGS=\"--set image.tag=$IMAGE_TAG\" | tee -a release.env
+    - cat release.env
+  dependencies:
+    - compile
+  artifacts:
+    name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
+    expire_in: 5 weeks
+    paths:
+      - release.env
+
+container:
+  tags:
+    - aufs
+  image: crosscloudci/debian-docker:latest
+  stage: package
+  only:
+    variables:
+      - $ARCH == null
+  script:
+    - IMAGE_TAG=${CI_COMMIT_REF_NAME}.${CI_COMMIT_SHA_SHORT}.${CI_JOB_ID}.amd64
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
     - docker build --pull -f ci/Dockerfile-envoy-image -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
     - docker build --pull -f ci/Dockerfile-envoy-alpine -t "$CI_REGISTRY_IMAGE/alpine:$IMAGE_TAG" .
