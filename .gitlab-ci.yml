@@ -29,7 +29,7 @@ before_script:
       source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
     fi
 
-baseimage-arm:
+baseimage:
   tags:
     - arm
   image: crosscloudci/debian-docker:arm64
@@ -67,7 +67,7 @@ baseimage:
     - docker push "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG"
 
 
-compile-arm:
+compile:
   tags:
     - arm
   image: "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG.arm64"
@@ -103,7 +103,7 @@ compile:
     paths:
      - ./build_release_stripped/envoy
 
-container-arm:
+container:
   tags:
     - arm
   image: crosscloudci/debian-docker:arm64
