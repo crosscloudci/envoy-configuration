@@ -52,8 +52,6 @@ baseimage-arm:
 
     
 baseimage:
-  tags:
-    - aufs
   image: crosscloudci/debian-docker:latest
   stage: dependencies
   only:
@@ -86,8 +84,6 @@ compile-arm:
       - ./build_release_stripped/envoy
 
 compile:
-  tags:
-    - aufs
   image: "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG"
   stage: build
   only:
@@ -133,8 +129,6 @@ container-arm:
       - release.env
 
 container:
-  tags:
-    - aufs
   image: crosscloudci/debian-docker:latest
   stage: package
   only:
