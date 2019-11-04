@@ -75,8 +75,8 @@ compile:
       - $ARCH == "amd64"
   script:
     - mkdir -p /envoy/envoy-"$CI_PIPELINE_ID"
-    - ln -s $(pwd) /envoy/envoy-"$CI_PIPELINE_ID"
-    - cd /envoy/envoy-"$CI_PIPELINE_ID"/envoy
+    - cp -a $(pwd) /envoy/envoy-"$CI_PIPELINE_ID"
+    - cd /envoy/envoy-"$CI_PIPELINE_ID"
     - pwd
     - ls -la
     - ./ci/run_envoy_docker.sh 'ci/do_ci.sh bazel.release.server_only'
