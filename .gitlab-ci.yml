@@ -70,7 +70,7 @@ compile-arm:
       - ./build_release_stripped/envoy
 
 compile:
-  image: "crosscloudci/ubuntu-xenial:latest"
+  image: "crosscloudci/debian-docker:latest"
   stage: build
   only:
     variables:
