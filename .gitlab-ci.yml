@@ -23,10 +23,6 @@ before_script:
   - >
     if [ "$CI_JOB_NAME" == "compile-arm" ]; then
       source /opt/local/ubuntu/etc/rvmrc ; source /opt/local/ubuntu/etc/profile.d/rvm.sh ; rvm use ruby-2.4.0 ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
-    elif [ "$CI_JOB_NAME" == "compile" ]; then 
-      source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
-      . ./ci/envoy_build_sha.sh
-      echo "sha: $ENVOY_BUILD_SHA"
     else
       source /opt/local/etc/rvmrc ; source /opt/local/etc/profile.d/rvm.sh ; cp -a --no-preserve=mode /opt/local/dashboard /dashboard ; pushd /dashboard ; source /opt/local/.env ; chmod +x ./bin/update_dashboard ; ./bin/update_dashboard ; popd
     fi
@@ -40,6 +36,7 @@ baseimage-arm:
     variables:
       - $ARCH == "arm64"
   script:
+    - sleep 1000000
     - cd ./ci/build_container/
     - sed -i "1s|.*|FROM crosscloudci/ubuntu-bazel-arm64:disco|" ./Dockerfile-ubuntu
     - sed -i -e '/wget -O - https:/s/^/#/' build_container_ubuntu.sh
