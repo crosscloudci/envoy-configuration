@@ -101,6 +101,7 @@ container-arm:
     - sed -i "1s|.*|FROM crosscloudci/alpine-glibc:arm64|" ./ci/Dockerfile-envoy-alpine
     - sed -i "1s|.*|FROM crosscloudci/alpine-glibc:arm64|" ./ci/Dockerfile-envoy-alpine-debug
     - sed -i "1s|.*|FROM arm64v8/ubuntu:19.04|" ./ci/Dockerfile-envoy-image
+    - sleep 100000000
     - docker build --pull -f ci/Dockerfile-envoy-image -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
     - docker build --pull -f ci/Dockerfile-envoy-alpine -t "$CI_REGISTRY_IMAGE/alpine:$IMAGE_TAG" .
     - docker build --pull -f ci/Dockerfile-envoy-alpine-debug -t "$CI_REGISTRY_IMAGE/alpine-debug:$IMAGE_TAG" .
