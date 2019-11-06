@@ -36,30 +36,37 @@ baseimage-arm:
     variables:
       - $ARCH == "arm64"
   script:
-    - cd ./ci/build_container/
-    - sed -i "1s|.*|FROM crosscloudci/ubuntu-bazel-arm64:disco|" ./Dockerfile-ubuntu
-    - sed -i -e '/wget -O - https:/s/^/#/' build_container_ubuntu.sh
-    - sed -i -e '/apt-add-repository "deb https:\/\/apt.llvm.org\/xenial\/ llvm-toolchain-xenial-8 main"/s/^/#/' build_container_ubuntu.sh
-    - sed -i -e '/add-apt-repository -y ppa:ubuntu-toolchain-r\/test/s/^/#/' build_container_ubuntu.sh
-    - sed -i -e '/echo/s/^/#/' build_container_ubuntu.sh
-    - sed -i -e '/curl https:\/\/bazel.build\/bazel-release.pub.gpg/s/^/#/' build_container_ubuntu.sh
-    - sed -i -e '/apt-get install -y bazel/s/^/#/' build_container_ubuntu.sh
-    - CIRCLE_SHA1="$CI_COMMIT_REF_SLUG.arm64" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-ubuntu" ./docker_build.sh
+    - git clone https://github.com/envoyproxy/envoy-build-tools.git
+    - cd envoy-build-tools/build_container
+    - sed -i "1s|.*|FROM crosscloudci/ubuntu-bazel-arm64:xenial|" ./Dockerfile-ubuntu
+    - sed -i "/arch=amd64/{n;n;s/.*/    \n\n\n\n/}" ./build_container_ubuntu.sh
+    - sed -i "/arch=amd64/{n;n;s/.*/    'aarch64' )/}" ./build_container_ubuntu.sh
+    - sed -i '/arch=amd64/{n;n;n;s/.*/        add-apt-repository "deb [arch=arm64] https:\/\/download.docker.com\/linux\/ubuntu $(lsb_release -cs) stable"/}' ./build_container_ubuntu.sh
+    - sed -i '/arch=amd64/{n;n;n;n;s/.*/        ;;/}' ./build_container_ubuntu.sh
+    - sed -i '/arch=amd64/{n;n;n;n;n;s/.*/esac/}' ./build_container_ubuntu.sh
+    - sed -i "/LLVM_DISTRO=x86_64-linux-gnu-ubuntu-16.04/{n;n;n;s/.*/    \n\n\n\n /}" ./build_container_ubuntu.sh
+    - sed -i "/LLVM_DISTRO=x86_64-linux-gnu-ubuntu-16.04/{n;n;n;s/.*/    'aarch64' )/}" ./build_container_ubuntu.sh
+    - sed -i "/LLVM_DISTRO=x86_64-linux-gnu-ubuntu-16.04/{n;n;n;n;s/.*/        LLVM_DISTRO=aarch64-linux-gnu/}" ./build_container_ubuntu.sh
+    - sed -i "/LLVM_DISTRO=x86_64-linux-gnu-ubuntu-16.04/{n;n;n;n;n;s/.*/        LLVM_SHA256SUM=f8f3e6bdd640079a140a7ada4eb6f5f05aeae125cf54b94d44f733b0e8691dc2/}" ./build_container_ubuntu.sh
+    - sed -i "/LLVM_DISTRO=x86_64-linux-gnu-ubuntu-16.04/{n;n;n;n;n;n;s/.*/        ;;/}" ./build_container_ubuntu.sh
+    - sed -i "/LLVM_DISTRO=x86_64-linux-gnu-ubuntu-16.04/{n;n;n;n;n;n;n;s/.*/esac/}" ./build_container_ubuntu.sh
+    - CONTAINER_TAG="$CI_COMMIT_REF_SLUG.arm64" IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-ubuntu" ./docker_build.sh
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
     - docker push "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG.arm64"
 
-    
 compile-arm:
   tags:
     - arm
-  image: "$CI_REGISTRY_IMAGE/envoy-build-ubuntu:$CI_COMMIT_REF_SLUG.arm64"
+  image: "crosscloudci/debian-docker:arm64"
   stage: build
   only:
     variables:
       - $ARCH == "arm64"
   script:
-    - ln -s $(pwd) /source
-    - BAZEL_BUILD_EXTRA_OPTIONS='--host_javabase=@local_jdk//:jdk' ./ci/do_ci.sh bazel.release.server_only
+    - mkdir -p /envoy/envoy-"$CI_PIPELINE_ID"
+    - cp -a $(pwd) /envoy/envoy-"$CI_PIPELINE_ID"
+    - cd /envoy/envoy-"$CI_PIPELINE_ID"/envoy
+    - ./ci/run_envoy_docker.sh 'ci/do_ci.sh bazel.release.server_only'
   artifacts:
     name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
     untracked: true
@@ -77,8 +84,6 @@ compile:
     - mkdir -p /envoy/envoy-"$CI_PIPELINE_ID"
     - cp -a $(pwd) /envoy/envoy-"$CI_PIPELINE_ID"
     - cd /envoy/envoy-"$CI_PIPELINE_ID"/envoy
-    - pwd
-    - ls -la
     - ./ci/run_envoy_docker.sh 'ci/do_ci.sh bazel.release.server_only'
   artifacts:
     name: "${CI_JOB_NAME}_${CI_COMMIT_REF_NAME}"
