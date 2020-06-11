@@ -61,7 +61,7 @@ compile-arm:
     - mkdir -p /envoy/envoy-"$CI_PIPELINE_ID"
     - cp -a $(pwd) /envoy/envoy-"$CI_PIPELINE_ID"
     - pushd /envoy/envoy-"$CI_PIPELINE_ID"/envoy
-    - IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-ubuntu" IMAGE_ID="$CI_COMMIT_REF_SLUG.arm64" ./ci/run_envoy_docker.sh 'ci/do_ci.sh bazel.release.server_only'
+    - IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-ubuntu" IMAGE_ID="$CI_COMMIT_REF_SLUG.arm64" ./ci/run_envoy_docker.sh './ci/do_ci.sh bazel.release.server_only'
     - popd 
     - cp -a /envoy/envoy-"$CI_PIPELINE_ID"/envoy/build_release/ . 
     - cp -a /envoy/envoy-"$CI_PIPELINE_ID"/envoy/build_release_stripped/ . 
@@ -83,7 +83,7 @@ compile:
     - mkdir -p /envoy/envoy-"$CI_PIPELINE_ID"
     - cp -a $(pwd) /envoy/envoy-"$CI_PIPELINE_ID"
     - pushd /envoy/envoy-"$CI_PIPELINE_ID"/envoy
-    - ./ci/run_envoy_docker.sh 'ci/do_ci.sh bazel.release.server_only'
+    - ./ci/run_envoy_docker.sh './ci/do_ci.sh bazel.release.server_only'
     - popd 
     - cp -a /envoy/envoy-"$CI_PIPELINE_ID"/envoy/build_release/ . 
     - cp -a /envoy/envoy-"$CI_PIPELINE_ID"/envoy/build_release_stripped/ . 
