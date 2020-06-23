@@ -109,7 +109,7 @@ container-arm:
     - sed -i "1s|.*|FROM crosscloudci/alpine-glibc:arm64|" ./ci/Dockerfile-envoy-alpine
     - sed -i "1s|.*|FROM crosscloudci/alpine-glibc:arm64|" ./ci/Dockerfile-envoy-alpine-debug
     - sed -i "1s|.*|FROM arm64v8/ubuntu:19.04|" ./ci/Dockerfile-envoy-image
-    - docker build --pull -f ci/Dockerfile-envoy-image -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
+    - docker build --pull -f ci/Dockerfile-envoy -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
     - docker build --pull -f ci/Dockerfile-envoy-alpine -t "$CI_REGISTRY_IMAGE/alpine:$IMAGE_TAG" .
     - docker build --pull -f ci/Dockerfile-envoy-alpine-debug -t "$CI_REGISTRY_IMAGE/alpine-debug:$IMAGE_TAG" .
     - docker push "$CI_REGISTRY_IMAGE:$IMAGE_TAG"
@@ -133,7 +133,12 @@ container:
   script:
     - IMAGE_TAG=${CI_COMMIT_REF_NAME}.${CI_COMMIT_SHA_SHORT}.${CI_JOB_ID}.amd64
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
-    - docker build --pull -f ci/Dockerfile-envoy-image -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
+    - >
+      if [ -f "ci/Dockerfile-envoy" ]; then
+         docker build --pull -f ci/Dockerfile-envoy -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
+      else
+         docker build --pull -f ci/Dockerfile-envoy-image -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
+      fi
     - docker build --pull -f ci/Dockerfile-envoy-alpine -t "$CI_REGISTRY_IMAGE/alpine:$IMAGE_TAG" .
     - docker build --pull -f ci/Dockerfile-envoy-alpine-debug -t "$CI_REGISTRY_IMAGE/alpine-debug:$IMAGE_TAG" .
     - docker push "$CI_REGISTRY_IMAGE:$IMAGE_TAG"
