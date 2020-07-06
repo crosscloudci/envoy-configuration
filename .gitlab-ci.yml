@@ -61,7 +61,7 @@ compile-arm:
     - mkdir -p /envoy/envoy-"$CI_PIPELINE_ID"
     - cp -a $(pwd) /envoy/envoy-"$CI_PIPELINE_ID"
     - pushd /envoy/envoy-"$CI_PIPELINE_ID"/envoy
-    - IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-ubuntu" IMAGE_ID="$CI_COMMIT_REF_SLUG.arm64" ./ci/run_envoy_docker.sh 'ci/do_ci.sh bazel.release.server_only'
+    - IMAGE_NAME="$CI_REGISTRY_IMAGE/envoy-build-ubuntu" IMAGE_ID="$CI_COMMIT_REF_SLUG.arm64" ./ci/run_envoy_docker.sh './ci/do_ci.sh bazel.release.server_only'
     - popd 
     - cp -a /envoy/envoy-"$CI_PIPELINE_ID"/envoy/build_release/ . 
     - cp -a /envoy/envoy-"$CI_PIPELINE_ID"/envoy/build_release_stripped/ . 
@@ -83,7 +83,7 @@ compile:
     - mkdir -p /envoy/envoy-"$CI_PIPELINE_ID"
     - cp -a $(pwd) /envoy/envoy-"$CI_PIPELINE_ID"
     - pushd /envoy/envoy-"$CI_PIPELINE_ID"/envoy
-    - ./ci/run_envoy_docker.sh 'ci/do_ci.sh bazel.release.server_only'
+    - ./ci/run_envoy_docker.sh './ci/do_ci.sh bazel.release.server_only'
     - popd 
     - cp -a /envoy/envoy-"$CI_PIPELINE_ID"/envoy/build_release/ . 
     - cp -a /envoy/envoy-"$CI_PIPELINE_ID"/envoy/build_release_stripped/ . 
@@ -109,7 +109,7 @@ container-arm:
     - sed -i "1s|.*|FROM crosscloudci/alpine-glibc:arm64|" ./ci/Dockerfile-envoy-alpine
     - sed -i "1s|.*|FROM crosscloudci/alpine-glibc:arm64|" ./ci/Dockerfile-envoy-alpine-debug
     - sed -i "1s|.*|FROM arm64v8/ubuntu:19.04|" ./ci/Dockerfile-envoy-image
-    - docker build --pull -f ci/Dockerfile-envoy-image -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
+    - docker build --pull -f ci/Dockerfile-envoy -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
     - docker build --pull -f ci/Dockerfile-envoy-alpine -t "$CI_REGISTRY_IMAGE/alpine:$IMAGE_TAG" .
     - docker build --pull -f ci/Dockerfile-envoy-alpine-debug -t "$CI_REGISTRY_IMAGE/alpine-debug:$IMAGE_TAG" .
     - docker push "$CI_REGISTRY_IMAGE:$IMAGE_TAG"
@@ -133,7 +133,12 @@ container:
   script:
     - IMAGE_TAG=${CI_COMMIT_REF_NAME}.${CI_COMMIT_SHA_SHORT}.${CI_JOB_ID}.amd64
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
-    - docker build --pull -f ci/Dockerfile-envoy-image -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
+    - >
+      if [ -f "ci/Dockerfile-envoy" ]; then
+         docker build --pull -f ci/Dockerfile-envoy -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
+      else
+         docker build --pull -f ci/Dockerfile-envoy-image -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
+      fi
     - docker build --pull -f ci/Dockerfile-envoy-alpine -t "$CI_REGISTRY_IMAGE/alpine:$IMAGE_TAG" .
     - docker build --pull -f ci/Dockerfile-envoy-alpine-debug -t "$CI_REGISTRY_IMAGE/alpine-debug:$IMAGE_TAG" .
     - docker push "$CI_REGISTRY_IMAGE:$IMAGE_TAG"
