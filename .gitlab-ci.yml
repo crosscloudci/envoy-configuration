@@ -140,7 +140,7 @@ container:
          docker build --pull -f ci/Dockerfile-envoy-image -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
       fi
     #- sleep 3600
-    - docker build --pull -f ci/Dockerfile-envoy-alpine -t "$CI_REGISTRY_IMAGE/alpine:$IMAGE_TAG" .
+    #- docker build --pull -f ci/Dockerfile-envoy-alpine -t "$CI_REGISTRY_IMAGE/alpine:$IMAGE_TAG" .
     #- docker build --pull -f ci/Dockerfile-envoy-alpine-debug -t "$CI_REGISTRY_IMAGE/alpine-debug:$IMAGE_TAG" .
     - docker push "$CI_REGISTRY_IMAGE:$IMAGE_TAG"
     - echo export IMAGE_ARGS=\"--set image.repository=$CI_REGISTRY_IMAGE\" | tee release.env
