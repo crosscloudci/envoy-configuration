@@ -126,8 +126,8 @@ container:
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
     - >
       if [ -f "ci/Dockerfile-envoy" ]; then
-         docker build --pull -f ci/Dockerfile-envoy -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
          sed -i 's/^.*TARGETPLATFORM$/ARG TARGETPLATFORM=linux\/amd64/g' ./ci/Dockerfile-envoy
+         docker build --pull -f ci/Dockerfile-envoy -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
       else
          docker build --pull -f ci/Dockerfile-envoy-image -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
       fi
