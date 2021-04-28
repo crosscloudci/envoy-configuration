@@ -124,10 +124,10 @@ container:
   script:
     - IMAGE_TAG=${CI_COMMIT_REF_NAME}.${CI_COMMIT_SHA_SHORT}.${CI_JOB_ID}.amd64
     - docker login -u "gitlab-ci-token" -p "$CI_JOB_TOKEN" $CI_REGISTRY
-    - sleep 100000
     - >
       if [ -f "ci/Dockerfile-envoy" ]; then
          docker build --pull -f ci/Dockerfile-envoy -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
+         sed -i 's/^.*TARGETPLATFORM$/ARG TARGETPLATFORM=linux\/amd64/g' ./ci/Dockerfile-envoy
       else
          docker build --pull -f ci/Dockerfile-envoy-image -t "$CI_REGISTRY_IMAGE:$IMAGE_TAG" .
       fi
